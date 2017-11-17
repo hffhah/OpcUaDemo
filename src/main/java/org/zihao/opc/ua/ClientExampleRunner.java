@@ -1,6 +1,8 @@
 
 package org.zihao.opc.ua;
 
+import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -8,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
+import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
 import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
 import org.eclipse.milo.opcua.stack.core.Stack;
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
@@ -15,18 +18,12 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.zihao.opc.ua.constant.Constant;
-import org.zihao.opc.ua.utils.KeyStoreLoader;
-
-import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class ClientExampleRunner {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private final CompletableFuture<OpcUaClient> future = new CompletableFuture<>();
-
-	private final KeyStoreLoader loader = new KeyStoreLoader();
 
 	private final ClientExample clientExample;
 
@@ -37,8 +34,8 @@ public class ClientExampleRunner {
 	}
 
 	private OpcUaClient createClient() throws Exception {
-		//本地策略
 		SecurityPolicy securityPolicy = clientExample.getSecurityPolicy();
+		IdentityProvider identityProvider = clientExample.getIdentityProvider();
 
 		EndpointDescription[] endpoints = UaTcpStackClient.getEndpoints(URL).get();
 
@@ -48,13 +45,12 @@ public class ClientExampleRunner {
 
 		logger.info("Using endpoint: {} [{}]", endpoint.getEndpointUrl(), securityPolicy);
 
-		loader.load();
-
 		OpcUaClientConfig config = OpcUaClientConfig.builder()
 				.setApplicationName(LocalizedText.english("eclipse milo opc-ua client"))
-				.setApplicationUri("urn:eclipse:milo:examples:client").setCertificate(loader.getClientCertificate())
-				.setKeyPair(loader.getClientKeyPair()).setEndpoint(endpoint)
-				.setIdentityProvider(clientExample.getIdentityProvider()).setRequestTimeout(uint(5000)).build();
+				.setApplicationUri("urn:eclipse:milo:examples:client")
+				.setEndpoint(endpoint)
+				.setIdentityProvider(identityProvider)
+				.setRequestTimeout(uint(5000)).build();
 
 		return new OpcUaClient(config);
 	}
