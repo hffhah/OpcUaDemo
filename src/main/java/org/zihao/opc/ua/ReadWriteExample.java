@@ -5,9 +5,11 @@ import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
+import org.eclipse.milo.opcua.stack.core.types.builtin.DateTime;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UShort;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,11 +37,12 @@ public class ReadWriteExample implements ClientExample {
 		CompletableFuture<DataValue> read = client.readValue(0, TimestampsToReturn.Both, nodeIds.get(0));
 		logger.info("read=" + read.get().getValue().toString());
 
+		NodeId nodeId = new NodeId(2, Constant.TAG);
 		// write
-//		DataValue dataValue = new DataValue(new Variant(0), null, null);
-		DataValue dataValue = new DataValue(new Variant(0));
-		CompletableFuture<StatusCode> writeValue = client.writeValue(nodeIds.get(0), dataValue);
-		logger.info("result success =" + writeValue.get().isGood() + ",desc=" + writeValue.get());
+		Variant variant = new Variant(UShort.valueOf(100));
+		DataValue dataValue = new DataValue(variant, null, null, null);
+		CompletableFuture<StatusCode> writeValue = client.writeValue(nodeId, dataValue);
+		logger.info(writeValue.get().isGood() + ",desc=" + writeValue.get());
 
 		future.complete(client);
 	}
